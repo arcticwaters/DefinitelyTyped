@@ -14,27 +14,26 @@ declare module 'bookshelf' {
 		knex : knex;
 		Model : typeof Bookshelf.Model;
 		Collection : typeof Bookshelf.Collection;
-		
-		transaction(callback : (transaction : Bookshelf.Transaction) => any) : Promise<any>;
+
+		transaction<T>(callback : (transaction : Bookshelf.Transaction) => T) : Promise<T>;
 	}
 	
 	function Bookshelf(knex : knex) : Bookshelf;
 	
 	namespace Bookshelf {
-		class Model<T> implements ModelBase {
-			constructor(attributes : any, options? : ModelOptions);
+		class Model<T extends Model<any>> implements ModelBase {
+			constructor(attributes? : any, options? : ModelOptions);
 			
-			static collection<T>(models? : T[], options? : CollectionOptions) : Collection<T>;
+			static collection<T extends Model<any>>(models? : T[], options? : CollectionOptions) : Collection<T>;
 			static count(column? : string, options? : CollectionOptions) : Promise<number>;
 			// use TypeScript classes
 			// static extend<T>(prototypeProperties? : any, classProperties? : any) : Function;
-			static fetchAll<T>() : Promise<Collection<T>>;
+			static fetchAll<T extends Model<any>>() : Promise<Collection<T>>;
 			// use new object
 			// static forge<T>(attributes? : any, options? : ModelOptions) : T;
 			
-			belongsTo(target : typeof Model, foreignKey? : string) : T;
-			// type R should be same as target = typeof Model
-			belongsToMany<R>(target : typeof Model, table? : string, foreignKey? : string, otherKey? : string) : Collection<R>;
+			belongsTo<R extends Model<any>>(target : {new(...args : any[]) : R}, foreignKey? : string) : R;
+			belongsToMany<R extends Model<any>>(target : {new(...args : any[]) : R}, table? : string, foreignKey? : string, otherKey? : string) : Collection<R>;
 			clear() : T;
 			clone() : T;
 			count(column? : string, options? : CollectionOptions) : Promise<number>;
@@ -46,17 +45,14 @@ declare module 'bookshelf' {
 			get(attribute : string) : any;
 			has(attribute : string) : boolean;
 			hasChanged(attribute? : string) : boolean;
-			// type R should be same as target = typeof Model
-			hasMany<R>(target : typeof Model, foreignKey? : string) : Collection<R>;
-			// type R should be same as target = typeof Model
-			hasOne<R>(target : typeof Model, foreignKey? : string) : R;
+			hasMany<R extends Model<any>>(target : {new(...args : any[]) : R}, foreignKey? : string) : Collection<R>;
+			hasOne<R extends Model<any>>(target : {new(...args : any[]) : R}, foreignKey? : string) : R;
 			isNew() : boolean;
 			load(relations : string|string[], options? : TransactionOptions) : Promise<T>;
-			// type R should be same as target = typeof Model
-			morphMany<R>(target : typeof Model, name? : string, columnNames? : string[], morphValue? : string) : Collection<R>;
-			// type R should be same as target = typeof Model
-			morphOne<R>(target : typeof Model, name? : string, columnNames? : string[], morphValue? : string) : R;
+			morphMany<R extends Model<any>>(target : {new(...args : any[]) : R}, name? : string, columnNames? : string[], morphValue? : string) : Collection<R>;
+			morphOne<R extends Model<any>>(target : {new(...args : any[]) : R}, name? : string, columnNames? : string[], morphValue? : string) : R;
 			morphTo(name : string, columnNames? : string[], ...target : typeof Model[]) : T;
+			morphTo(name : string, ...target : typeof Model[]) : T;
 			off(event? : string, callback? : Function, context? : any) : void;
 			on(event? : string, callback? : Function, context? : any) : void;
 			once(event : string, callback : Function, context? : any) : void;
@@ -65,18 +61,19 @@ declare module 'bookshelf' {
 			previousAttributes() : any;
 			query(...args : any[]) : T | knex.QueryBuilder;
 			refresh(options? : FetchOptions) : Promise<T>;
-			related<R>(relation : string) : R | Collection<R>;
+			related<R extends Model<any>>(relation : string) : R | Collection<R>;
 			resetQuery() : T;
 			save(key? : string, val? : string, options? : SaveOptions) : Promise<T>;
 			save(attrs? : any, options? : SaveOptions) : Promise<T>;
 			serialize(options? : SerializeOptions) : Object;
 			set(attribute : string|any, value? : any, options? : SetOptions) : T;
-			through<R>(interim : typeof Model, throughForeignKey? : string, otherKey? : string) : Collection<R>;
+			through<R extends Model<any>>(interim : typeof Model, throughForeignKey? : string, otherKey? : string) : Collection<R>;
 			timestamp(options? : TimestampOptions) : Object;
 			toJSON(options? : SerializeOptions) : Object;
 			triggerThen(name : string, ...args : any[]) : Promise<any>;
 			unset(attribute : string) : T;
-			where(...method : any[]) : T;
+			where(properties : Object) : T;
+			where(key : string, operatorOrValue : string|number|boolean, valueIfOperator? : string|number|boolean) : T;
 		}
 		
 		interface ModelBase {
@@ -88,7 +85,7 @@ declare module 'bookshelf' {
 			tableName? : string;
 		}
 		
-		class Collection<T> {
+		class Collection<T extends Model<any>> {
 			// use TypeScript classes
 			// static extend<T>(prototypeProperties? : any, classProperties? : any) : Function;
 			// use new object
