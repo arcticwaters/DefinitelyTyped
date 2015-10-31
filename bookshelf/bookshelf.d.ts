@@ -24,6 +24,9 @@ declare module 'bookshelf' {
 	
 	namespace Bookshelf {
 		class Model<T extends Model<any>> implements ModelBase {
+			/** If overriding, must use a getter instead of a plain property. */
+			idAttribute : string;
+			
 			constructor(attributes? : any, options? : ModelOptions);
 			
 			static collection<T extends Model<any>>(models? : T[], options? : CollectionOptions) : Collection<T>;
@@ -91,8 +94,6 @@ declare module 'bookshelf' {
 		interface ModelBase {
 			/** Should be declared as a getter instead of a plain property. */
 			hasTimestamps? : boolean|string[];
-			/** Should be declared as a getter instead of a plain property. */
-			idAttribute? : string;
 			/** Should be declared as a getter instead of a plain property. Should be required, but cannot have abstract properties yet. */
 			tableName? : string;
 		}
