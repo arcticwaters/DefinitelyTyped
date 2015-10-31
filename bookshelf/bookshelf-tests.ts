@@ -1,8 +1,8 @@
 /// <reference path="bookshelf.d.ts" />
 /// <reference path="../knex/knex.d.ts" />
 
-import Knex = require('knex');
-import Bookshelf = require('bookshelf');
+import * as Knex from 'knex';
+import * as Bookshelf from 'bookshelf';
 
 var knex = Knex({
 	client: 'sqlite3',
