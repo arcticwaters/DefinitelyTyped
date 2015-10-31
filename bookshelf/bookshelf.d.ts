@@ -29,8 +29,8 @@ declare module 'bookshelf' {
 			
 			constructor(attributes? : any, options? : ModelOptions);
 			
-			static collection<T extends Model<any>>(models? : T[], options? : CollectionOptions) : Collection<T>;
-			static count(column? : string, options? : CollectionOptions) : Promise<number>;
+			static collection<T extends Model<any>>(models? : T[], options? : CollectionOptions<T>) : Collection<T>;
+			static count(column? : string, options? : SyncOptions) : Promise<number>;
 			// use TypeScript classes
 			// static extend<T>(prototypeProperties? : any, classProperties? : any) : Function;
 			static fetchAll<T extends Model<any>>() : Promise<Collection<T>>;
@@ -41,8 +41,8 @@ declare module 'bookshelf' {
 			belongsToMany<R extends Model<any>>(target : {new(...args : any[]) : R}, table? : string, foreignKey? : string, otherKey? : string) : Collection<R>;
 			clear() : T;
 			clone() : T;
-			count(column? : string, options? : CollectionOptions) : Promise<number>;
-			destroy(options : TransactionOptions) : void;
+			count(column? : string, options? : SyncOptions) : Promise<number>;
+			destroy(options : SyncOptions) : void;
 			escape(attribute : string) : string;
 			fetch(options? : FetchOptions) : Promise<T>;
 			fetchAll(options? : FetchAllOptions) : Promise<Collection<T>>;
@@ -53,7 +53,7 @@ declare module 'bookshelf' {
 			hasMany<R extends Model<any>>(target : {new(...args : any[]) : R}, foreignKey? : string) : Collection<R>;
 			hasOne<R extends Model<any>>(target : {new(...args : any[]) : R}, foreignKey? : string) : R;
 			isNew() : boolean;
-			load(relations : string|string[], options? : TransactionOptions) : Promise<T>;
+			load(relations : string|string[], options? : LoadOptions) : Promise<T>;
 			morphMany<R extends Model<any>>(target : {new(...args : any[]) : R}, name? : string, columnNames? : string[], morphValue? : string) : Collection<R>;
 			morphOne<R extends Model<any>>(target : {new(...args : any[]) : R}, name? : string, columnNames? : string[], morphValue? : string) : R;
 			morphTo(name : string, columnNames? : string[], ...target : typeof Model[]) : T;
@@ -64,20 +64,24 @@ declare module 'bookshelf' {
 			parse(response : any) : any;
 			previous(attribute : string) : any;
 			previousAttributes() : any;
-			query(...args : any[]) : T | knex.QueryBuilder;
+			query(...query : string[]) : T;
+			query(query : {[key : string] : any}) : T;
+			query(callback : (qb : knex.QueryBuilder) => void) : T;
+			query() : knex.QueryBuilder;
 			refresh(options? : FetchOptions) : Promise<T>;
 			related<R extends Model<any>>(relation : string) : R | Collection<R>;
 			resetQuery() : T;
 			save(key? : string, val? : string, options? : SaveOptions) : Promise<T>;
-			save(attrs? : any, options? : SaveOptions) : Promise<T>;
+			save(attrs? : {[key : string] : any}, options? : SaveOptions) : Promise<T>;
 			serialize(options? : SerializeOptions) : Object;
-			set(attribute : string|any, value? : any, options? : SetOptions) : T;
+			set(attribute : string, value? : any, options? : SetOptions) : T;
+			set(attribute?: {[key : string] : any}, options? : SetOptions) : T;
 			through<R extends Model<any>>(interim : typeof Model, throughForeignKey? : string, otherKey? : string) : Collection<R>;
 			timestamp(options? : TimestampOptions) : Object;
 			toJSON(options? : SerializeOptions) : Object;
 			triggerThen(name : string, ...args : any[]) : Promise<any>;
 			unset(attribute : string) : T;
-			where(properties : Object) : T;
+			where(properties : {[key : string] : any}) : T;
 			where(key : string, operatorOrValue : string|number|boolean, valueIfOperator? : string|number|boolean) : T;
 			
 			// lodash methods
@@ -104,19 +108,19 @@ declare module 'bookshelf' {
 			// use new object
 			// static forge<T>(attributes? : any, options? : ModelOptions) : T;
 			
-			add(models : any[], options? : CollectionAddOptions) : void;
+			add(models : T[]|{[key : string] : any}[], options? : CollectionAddOptions) : Collection<T>;
 			at(index : number) : T;
-			attach(ids : any[], options? : TransactionOptions) : Promise<Collection<T>>;
+			attach(ids : any[], options? : SyncOptions) : Promise<Collection<T>>;
 			clone() : Collection<T>;
-			count(column? : string, options? : CollectionOptions) : Promise<number>;
+			count(column? : string, options? : SyncOptions) : Promise<number>;
 			create(model : Object, options? : ModelOptions) : Promise<T>;
-			detach(ids : any[], options? : TransactionOptions) : Promise<any>;
+			detach(ids : any[], options? : SyncOptions) : Promise<any>;
 			fetch(options? : CollectionFetchOptions) : Promise<Collection<T>>;
 			fetchOne(options? : CollectionFetchOneOptions) : Promise<T>;
-			findWhere(...method : any[]) : T;
+			findWhere(match : {[key : string] : any}) : T;
 			get(id : any) : T;
 			invokeThen(name : string, ...args : any[]) : Promise<any>;
-			load(relations : string|string[], options? : TransactionOptions) : Promise<Collection<T>>;
+			load(relations : string|string[], options? : SyncOptions) : Promise<Collection<T>>;
 			off(event? : string, callback? : Function, context? : any) : void;
 			on(event? : string, callback? : Function, context? : any) : void;
 			once(event : string, callback : Function, context? : any) : void;
@@ -124,20 +128,24 @@ declare module 'bookshelf' {
 			pluck(attribute : string) : any[];
 			pop() : void;
 			push(model : any) : Collection<T>;
-			query(...args : any[]) : Collection<T> | knex.QueryBuilder;
-			reduceThen(iterator : Function, initialValue : any, context : any) : Promise<any>;
-			remove(model : T|T[], options? : TransactionOptions) : T|T[];
+			query(...query : string[]) : Collection<T>;
+			query(query : {[key : string] : any}) : Collection<T>;
+			query(callback : (qb : knex.QueryBuilder) => void) : Collection<T>;
+			query() : knex.QueryBuilder;
+			reduceThen<R>(iterator : (prev : R, cur : T, idx : number, array : T[]) => R, initialValue : R, context : any) : Promise<R>;
+			remove(model : T, options? : EventOptions) : T;
+			remove(model : T[], options? : EventOptions) : T[];
 			reset(model : any[], options? : CollectionAddOptions) : T[];
 			resetQuery() : Collection<T>;
 			serialize(options? : SerializeOptions) : Object;
-			set(models : T[]|any[], options? : CollectionSetOptions) : Collection<T>;
-			shift(options? : TransactionOptions) : void;
+			set(models : T[]|{[key : string] : any}[], options? : CollectionSetOptions) : Collection<T>;
+			shift(options? : EventOptions) : void;
 			slice(begin? : number, end? : number) : void;
 			toJSON(options? : SerializeOptions) : Object;
 			triggerThen(name : string, ...args : any[]) : Promise<any>;
 			unshift(model : any, options? : CollectionAddOptions) : void;
 			updatePivot(attributes : any, options? : PivotOptions) : Promise<number>;
-			where(...method : any[]) : Collection<T>;
+			where(match : {[key : string] : any}, firstOnly : boolean) : T|Collection<T>;
 			withPivot(columns : string[]) : Collection<T>;
 			
 			// lodash methods
@@ -213,21 +221,21 @@ declare module 'bookshelf' {
 			parse? : boolean;
 		}
 		
-		interface TransactionOptions {
-			transacting? : Transaction;
+		interface LoadOptions extends SyncOptions {
+			withRelated: string|any|any[];
 		}
 		
-		interface FetchOptions extends TransactionOptions {
+		interface FetchOptions extends SyncOptions {
 			require? : boolean;
 			columns? : string|string[];
 			withRelated : string|any|any[];
 		}
 		
-		interface FetchAllOptions extends TransactionOptions {
+		interface FetchAllOptions extends SyncOptions {
 			require? : boolean;
 		}
 		
-		interface SaveOptions extends TransactionOptions {
+		interface SaveOptions extends SyncOptions {
 			method? : string;
 			defaults? : string;
 			patch? : boolean;
@@ -249,11 +257,16 @@ declare module 'bookshelf' {
 		
 		interface Transaction {}
 		
-		interface CollectionOptions {
-			comparator? : boolean|Function;
+		interface SyncOptions {
+			transacting? : Transaction;
+			debug? : boolean;
 		}
 		
-		interface CollectionAddOptions {
+		interface CollectionOptions<T> {
+			comparator? : boolean|string|((a : T, b : T) => number);
+		}
+		
+		interface CollectionAddOptions extends EventOptions {
 			at? : number;
 			merge? : boolean;
 		}
@@ -263,20 +276,24 @@ declare module 'bookshelf' {
 			withRelated? : string|string[];
 		}
 		
-		interface CollectionFetchOneOptions extends TransactionOptions {
+		interface CollectionFetchOneOptions {
 			require? : boolean;
 			columns? : string|string[];
 		}
 		
-		interface CollectionSetOptions {
+		interface CollectionSetOptions extends EventOptions {
 			add? : boolean;
 			remove? : boolean;
 			merge?: boolean;
 		}
 		
-		interface PivotOptions extends TransactionOptions {
+		interface PivotOptions {
 			query? : Function|any;
 			require? : boolean;
+		}
+		
+		interface EventOptions {
+			silent? : boolean;
 		}
 	}
 	
