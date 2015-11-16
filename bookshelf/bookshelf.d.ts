@@ -17,7 +17,7 @@ declare module 'bookshelf' {
 		Model : typeof Bookshelf.Model;
 		Collection : typeof Bookshelf.Collection;
 
-		transaction<T>(callback : (transaction : Bookshelf.Transaction) => T) : Promise<T>;
+		transaction<T>(callback : (transaction : knex.Transaction) => T) : Promise<T>;
 	}
 	
 	function Bookshelf(knex : knex) : Bookshelf;
@@ -58,9 +58,9 @@ declare module 'bookshelf' {
 			morphOne<R extends Model<any>>(target : {new(...args : any[]) : R}, name? : string, columnNames? : string[], morphValue? : string) : R;
 			morphTo(name : string, columnNames? : string[], ...target : typeof Model[]) : T;
 			morphTo(name : string, ...target : typeof Model[]) : T;
-			off(event? : string, callback? : Function, context? : any) : void;
-			on(event? : string, callback? : Function, context? : any) : void;
-			once(event : string, callback : Function, context? : any) : void;
+			off(event? : string, callback? : EventFunction<T|Collection<T>>, context? : any) : void;
+			on(event? : string, callback? : EventFunction<T|Collection<T>>, context? : any) : void;
+			once(event : string, callback : EventFunction<T|Collection<T>>, context? : any) : void;
 			parse(response : any) : any;
 			previous(attribute : string) : any;
 			previousAttributes() : any;
@@ -76,7 +76,7 @@ declare module 'bookshelf' {
 			serialize(options? : SerializeOptions) : Object;
 			set(attribute : string, value? : any, options? : SetOptions) : T;
 			set(attribute?: {[key : string] : any}, options? : SetOptions) : T;
-			through<R extends Model<any>>(interim : typeof Model, throughForeignKey? : string, otherKey? : string) : Collection<R>;
+			through<R extends Model<any>>(interim : typeof Model, throughForeignKey? : string, otherKey? : string) : R | Collection<R>;
 			timestamp(options? : TimestampOptions) : Object;
 			toJSON(options? : SerializeOptions) : Object;
 			triggerThen(name : string, ...args : any[]) : Promise<any>;
@@ -113,7 +113,7 @@ declare module 'bookshelf' {
 			attach(ids : any[], options? : SyncOptions) : Promise<Collection<T>>;
 			clone() : Collection<T>;
 			count(column? : string, options? : SyncOptions) : Promise<number>;
-			create(model : Object, options? : ModelOptions) : Promise<T>;
+			create(model : {[key : string] : any}, options? : CollectionCreateOptions) : Promise<T>;
 			detach(ids : any[], options? : SyncOptions) : Promise<any>;
 			fetch(options? : CollectionFetchOptions) : Promise<Collection<T>>;
 			fetchOne(options? : CollectionFetchOneOptions) : Promise<T>;
@@ -121,9 +121,9 @@ declare module 'bookshelf' {
 			get(id : any) : T;
 			invokeThen(name : string, ...args : any[]) : Promise<any>;
 			load(relations : string|string[], options? : SyncOptions) : Promise<Collection<T>>;
-			off(event? : string, callback? : Function, context? : any) : void;
-			on(event? : string, callback? : Function, context? : any) : void;
-			once(event : string, callback : Function, context? : any) : void;
+			off(event? : string, callback? : EventFunction<Collection<T>>, context? : any) : void;
+			on(event? : string, callback? : EventFunction<Collection<T>>, context? : any) : void;
+			once(event : string, callback : EventFunction<Collection<T>>, context? : any) : void;
 			parse(response : any) : any;
 			pluck(attribute : string) : any[];
 			pop() : void;
@@ -141,6 +141,7 @@ declare module 'bookshelf' {
 			set(models : T[]|{[key : string] : any}[], options? : CollectionSetOptions) : Collection<T>;
 			shift(options? : EventOptions) : void;
 			slice(begin? : number, end? : number) : void;
+			through<R extends Model<any>>(interim : typeof Model, throughForeignKey? : string, otherKey? : string) : R | Collection<R>;
 			toJSON(options? : SerializeOptions) : Object;
 			triggerThen(name : string, ...args : any[]) : Promise<any>;
 			unshift(model : any, options? : CollectionAddOptions) : void;
@@ -228,7 +229,7 @@ declare module 'bookshelf' {
 		interface FetchOptions extends SyncOptions {
 			require? : boolean;
 			columns? : string|string[];
-			withRelated : string|any|any[];
+			withRelated? : string|any|any[];
 		}
 		
 		interface FetchAllOptions extends SyncOptions {
@@ -255,10 +256,8 @@ declare module 'bookshelf' {
 			method? : string;
 		}
 		
-		interface Transaction {}
-		
 		interface SyncOptions {
-			transacting? : Transaction;
+			transacting? : knex.Transaction;
 			debug? : boolean;
 		}
 		
@@ -295,6 +294,12 @@ declare module 'bookshelf' {
 		interface EventOptions {
 			silent? : boolean;
 		}
+		
+		interface EventFunction<T> {
+			(model: T, attrs: any, options: any) : Promise<any>|void;
+		}
+		
+		interface CollectionCreateOptions extends ModelOptions, SyncOptions, CollectionAddOptions, SaveOptions {}
 	}
 	
 	export = Bookshelf;
