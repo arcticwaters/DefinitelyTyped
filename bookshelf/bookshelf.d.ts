@@ -31,11 +31,11 @@ declare module 'bookshelf' {
 			
 			static collection<T extends Model<any>>(models? : T[], options? : CollectionOptions<T>) : Collection<T>;
 			static count(column? : string, options? : SyncOptions) : Promise<number>;
-			// use TypeScript classes
-			// static extend<T>(prototypeProperties? : any, classProperties? : any) : Function;
+			/** @deprecated use Typescript classes */
+			static extend<T extends Model<any>>(prototypeProperties? : any, classProperties? : any) : Function; // should return a type
 			static fetchAll<T extends Model<any>>() : Promise<Collection<T>>;
-			// use new object
-			// static forge<T>(attributes? : any, options? : ModelOptions) : T;
+			/** @deprecated should use `new` objects instead. */
+			static forge<T>(attributes? : any, options? : ModelOptions) : T;
 			
 			belongsTo<R extends Model<any>>(target : {new(...args : any[]) : R}, foreignKey? : string) : R;
 			belongsToMany<R extends Model<any>>(target : {new(...args : any[]) : R}, table? : string, foreignKey? : string, otherKey? : string) : Collection<R>;
@@ -103,10 +103,10 @@ declare module 'bookshelf' {
 		}
 		
 		class Collection<T extends Model<any>> {
-			// use TypeScript classes
-			// static extend<T>(prototypeProperties? : any, classProperties? : any) : Function;
-			// use new object
-			// static forge<T>(attributes? : any, options? : ModelOptions) : T;
+			/** @deprecated use Typescript classes */
+			static extend<T>(prototypeProperties? : any, classProperties? : any) : Function;
+			/** @deprecated should use `new` objects instead. */
+			static forge<T>(attributes? : any, options? : ModelOptions) : T;
 			
 			add(models : T[]|{[key : string] : any}[], options? : CollectionAddOptions) : Collection<T>;
 			at(index : number) : T;
